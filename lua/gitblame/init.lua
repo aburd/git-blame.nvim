@@ -585,6 +585,30 @@ M.open_file_url = function(args)
     end
 end
 
+-- See :h nvim_create_user_command for more information.
+---@class CommandArgs
+---@field line1 number
+---@field line2 number
+
+---@param args CommandArgs
+M.open_file_url_with_branch = function(args)
+    local filepath = utils.get_filepath()
+    if filepath == nil then
+        return
+    end
+
+    ---@param _sha string
+    local callback = function(_sha)
+        git.open_file_in_browser(filepath, nil, args.line1, args.line2)
+    end
+
+    if vim.g.gitblame_use_blame_commit_file_urls then
+        M.get_sha(callback, args.line1, args.line2)
+    else
+        get_latest_sha(callback)
+    end
+end
+
 M.get_current_blame_text = function()
     return current_blame_text
 end
@@ -654,7 +678,7 @@ M.copy_pr_url_to_clipboard = function()
                     if code ~= 0 then
                         utils.log("Failed to find PR (is gh CLI installed?)")
                     end
-                end
+                end,
             })
         else
             utils.log("Unable to get commit SHA")
@@ -801,6 +825,7 @@ local create_cmds = function()
     command("GitBlameCopyCommitURL", M.copy_commit_url_to_clipboard, {})
     command("GitBlameCopyFileURL", M.copy_file_url_to_clipboard, { range = true })
     command("GitBlameCopyPRURL", M.copy_pr_url_to_clipboard, {})
+    command("GitBlameOpenFileURLWithBranch", M.open_file_url_with_branch, { range = true })
 end
 
 ---@class SetupOptions
