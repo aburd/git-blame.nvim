@@ -648,6 +648,17 @@ M.copy_file_url_to_clipboard = function(args)
     end
 end
 
+M.copy_file_url_to_clipboard_with_branch = function(args)
+    local filepath = utils.get_filepath()
+    if filepath == nil then
+        return
+    end
+
+    git.get_file_url(filepath, nil, args.line1, args.line2, function(url)
+        utils.copy_to_clipboard(url)
+    end)
+end
+
 M.copy_commit_url_to_clipboard = function()
     M.get_sha(function(sha)
         if is_valid_sha(sha) then
@@ -826,6 +837,7 @@ local create_cmds = function()
     command("GitBlameCopyFileURL", M.copy_file_url_to_clipboard, { range = true })
     command("GitBlameCopyPRURL", M.copy_pr_url_to_clipboard, {})
     command("GitBlameOpenFileURLWithBranch", M.open_file_url_with_branch, { range = true })
+    command("GitBlameCopyFileURLWithBranch", M.copy_file_url_to_clipboard_with_branch, { range = true })
 end
 
 ---@class SetupOptions
