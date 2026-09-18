@@ -202,6 +202,29 @@ local function get_current_branch(callback)
 end
 
 ---@param filepath string
+---@param branch string
+---@param line1 number?
+---@param line2 number?
+---@param callback fun(url: string)
+function M.get_file_url_with_branch(filepath, branch, line1, line2, callback)
+    M.get_repo_root(function(root)
+        -- if outside a repository, return the filepath
+        -- so we can still copy the path or open the file
+        if root == "" then
+            callback(filepath)
+            return
+        end
+
+        local relative_filepath = string.sub(filepath, #root + 2)
+
+        M.get_remote_url(function(remote_url)
+            local url = get_file_url(remote_url, "branch", branch, relative_filepath, line1, line2)
+            callback(url)
+        end)
+    end)
+end
+
+---@param filepath string
 ---@param sha string?
 ---@param line1 number?
 ---@param line2 number?
@@ -249,6 +272,16 @@ end
 ---@param line2 number?
 function M.open_file_in_browser(filepath, sha, line1, line2)
     M.get_file_url(filepath, sha, line1, line2, function(url)
+        utils.launch_url(url)
+    end)
+end
+
+---@param filepath string
+---@param branch string
+---@param line1 number?
+---@param line2 number?
+function M.open_file_in_browser_with_branch(filepath, branch, line1, line2)
+    M.get_file_url_with_branch(filepath, branch, line1, line2, function(url)
         utils.launch_url(url)
     end)
 end

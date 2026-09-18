@@ -597,16 +597,22 @@ M.open_file_url_with_branch = function(args)
         return
     end
 
-    ---@param _sha string
-    local callback = function(_sha)
-        git.open_file_in_browser(filepath, nil, args.line1, args.line2)
+    git.open_file_in_browser(filepath, nil, args.line1, args.line2)
+end
+
+-- See :h nvim_create_user_command for more information.
+---@class CommandArgs
+---@field line1 number
+---@field line2 number
+
+---@param args CommandArgs
+M.open_file_url_with_master = function(args)
+    local filepath = utils.get_filepath()
+    if filepath == nil then
+        return
     end
 
-    if vim.g.gitblame_use_blame_commit_file_urls then
-        M.get_sha(callback, args.line1, args.line2)
-    else
-        get_latest_sha(callback)
-    end
+    git.open_file_in_browser_with_branch(filepath, "master", args.line1, args.line2)
 end
 
 M.get_current_blame_text = function()
@@ -655,6 +661,17 @@ M.copy_file_url_to_clipboard_with_branch = function(args)
     end
 
     git.get_file_url(filepath, nil, args.line1, args.line2, function(url)
+        utils.copy_to_clipboard(url)
+    end)
+end
+
+M.copy_file_url_to_clipboard_with_master = function(args)
+    local filepath = utils.get_filepath()
+    if filepath == nil then
+        return
+    end
+
+    git.get_file_url_with_branch(filepath, "master", args.line1, args.line2, function(url)
         utils.copy_to_clipboard(url)
     end)
 end
@@ -838,6 +855,8 @@ local create_cmds = function()
     command("GitBlameCopyPRURL", M.copy_pr_url_to_clipboard, {})
     command("GitBlameOpenFileURLWithBranch", M.open_file_url_with_branch, { range = true })
     command("GitBlameCopyFileURLWithBranch", M.copy_file_url_to_clipboard_with_branch, { range = true })
+    command("GitBlameOpenFileURLMaster", M.open_file_url_with_master, { range = true })
+    command("GitBlameCopyFileURLMaster", M.copy_file_url_to_clipboard_with_master, { range = true })
 end
 
 ---@class SetupOptions
